@@ -10,7 +10,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from .service import APP_VERSION, ConversionOptions, convert_file
 
-SUPPORTED_SUFFIXES = {".scn", ".scx", ".scx2"}
+SUPPORTED_SUFFIXES = {".scn", ".scx", ".scx2", ".aoe2scenario"}
 
 
 class MigratorApp(tk.Tk):
@@ -123,7 +123,10 @@ class MigratorApp(tk.Tk):
     def _choose_files(self) -> None:
         paths = filedialog.askopenfilenames(
             title="Select AoE2 legacy scenarios",
-            filetypes=[("AoE2 legacy scenarios", "*.scn *.scx *.scx2"), ("All files", "*.*")],
+            filetypes=[
+                ("AoE2 legacy scenarios", "*.scn *.scx *.scx2 *.aoe2scenario"),
+                ("All files", "*.*"),
+            ],
         )
         for path in paths:
             self._add_path(Path(path))
@@ -172,7 +175,10 @@ class MigratorApp(tk.Tk):
         if self.running:
             return
         if not self.files:
-            messagebox.showinfo("AoE2 Scenario Migrator", "Add at least one .scn, .scx or .scx2 file.")
+            messagebox.showinfo(
+                "AoE2 Scenario Migrator",
+                "Add at least one .scn, .scx, .scx2 or legacy-formatted .aoe2scenario file.",
+            )
             return
         output = Path(self.output_var.get()).expanduser().resolve() if self.output_var.get().strip() else None
         options = ConversionOptions(

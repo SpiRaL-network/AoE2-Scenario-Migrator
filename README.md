@@ -16,7 +16,7 @@ The application is not tied to a hard-coded DE version number. At conversion tim
 | Age of Empires II: The Conquerors | `.scx` | 1.22 | Current supported DE format |
 | Age of Empires II HD Edition | `.scx`, `.scx2` | 1.23, 1.24, 1.26 | Current supported DE format |
 
-Existing `.aoe2scenario` files are already DE scenarios and are intentionally left untouched. Star Wars: Galactic Battlegrounds uses a different data model and is not supported.
+Real DE `.aoe2scenario` files are already converted and are intentionally left untouched. Some HD Workshop scenarios were published with an `.aoe2scenario` extension even though their contents are still HD data; the application detects those mislabeled files by content and can migrate them. Star Wars: Galactic Battlegrounds uses a different data model and is not supported.
 
 ## What it migrates
 
