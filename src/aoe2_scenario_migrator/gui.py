@@ -77,8 +77,8 @@ class MigratorApp(tk.Tk):
         self.tree = ttk.Treeview(card, columns=("path", "status"), show="headings", selectmode="extended")
         self.tree.heading("path", text="Legacy scenario")
         self.tree.heading("status", text="Status")
-        self.tree.column("path", width=720, anchor="w")
-        self.tree.column("status", width=180, anchor="w")
+        self.tree.column("path", width=660, anchor="w")
+        self.tree.column("status", width=240, anchor="w")
         scrollbar = ttk.Scrollbar(card, orient="vertical", command=self.tree.yview)
         self.tree.configure(yscrollcommand=scrollbar.set)
         self.tree.pack(side="left", fill="both", expand=True)
@@ -199,6 +199,7 @@ class MigratorApp(tk.Tk):
 
     def _worker(self, files: list[Path], options: ConversionOptions) -> None:
         successes = 0
+        trigger_total = 0
         outputs: list[Path] = []
         for index, path in enumerate(files):
             self.events.put(("row", (index, "Reading…")))
@@ -210,12 +211,16 @@ class MigratorApp(tk.Tk):
                 )
                 outputs.append(Path(report["output"]))
                 successes += 1
-                self.events.put(("row", (index, "Validated ✓")))
+                trigger_count = int(report["source"]["triggers"])
+                trigger_total += trigger_count
+                self.events.put(
+                    ("row", (index, f"Validated ✓ · {trigger_count:,} triggers"))
+                )
             except Exception as exc:  # noqa: BLE001 - GUI boundary continues the batch after one file fails.
                 self.events.put(("row", (index, "Failed")))
                 self.events.put(("error", f"{path.name}\n\n{exc}"))
             self.events.put(("step", index + 1))
-        self.events.put(("done", (successes, len(files), outputs)))
+        self.events.put(("done", (successes, len(files), outputs, trigger_total)))
 
     def _poll_events(self) -> None:
         try:
@@ -236,10 +241,15 @@ class MigratorApp(tk.Tk):
                 elif event == "error":
                     messagebox.showerror("Conversion failed", str(payload))
                 elif event == "done":
-                    successes, total, outputs = payload
+                    successes, total, outputs, trigger_total = payload
                     self.running = False
                     self.convert_button.configure(state="normal")
-                    self.status_label.configure(text=f"Completed: {successes}/{total} validated")
+                    self.status_label.configure(
+                        text=(
+                            f"Completed: {successes}/{total} validated · "
+                            f"{trigger_total:,} triggers"
+                        )
+                    )
                     if outputs:
                         self.last_output_dir = outputs[-1].parent
                         self.open_button.configure(state="normal")

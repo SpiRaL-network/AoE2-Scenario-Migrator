@@ -59,6 +59,40 @@ def test_trigger_orders_are_rebuilt_deterministically(tmp_path):
     assert scenario.triggers[0].condition_order == [0, 1]
 
 
+def test_unnamed_triggers_are_named_in_display_order(tmp_path):
+    scenario = _scenario(tmp_path)
+    scenario.triggers = [
+        LegacyTrigger("", "", 1, 0, 0, 0, -1, [], [], [], []),
+        LegacyTrigger("Already named", "", 1, 0, 0, 0, -1, [], [], [], []),
+        LegacyTrigger("   ", "", 1, 0, 0, 0, -1, [], [], [], []),
+    ]
+    scenario.trigger_order = [2, 1, 0]
+
+    apply_safe_repairs(scenario)
+
+    assert scenario.triggers[2].name == "Trigger 1"
+    assert scenario.triggers[1].name == "Already named"
+    assert scenario.triggers[0].name == "Trigger 2"
+    finding = next(
+        item for item in scenario.findings if item.rule_id == "UPGRADE.UNNAMED_TRIGGER_NAMES"
+    )
+    assert finding.applied is True
+    assert finding.original == {"unnamed_triggers": 2}
+
+
+def test_generated_trigger_names_do_not_duplicate_existing_names(tmp_path):
+    scenario = _scenario(tmp_path)
+    scenario.triggers = [
+        LegacyTrigger("Trigger 1", "", 1, 0, 0, 0, -1, [], [], [], []),
+        LegacyTrigger("", "", 1, 0, 0, 0, -1, [], [], [], []),
+    ]
+    scenario.trigger_order = [0, 1]
+
+    apply_safe_repairs(scenario)
+
+    assert scenario.triggers[1].name == "Trigger 2"
+
+
 def test_missing_garrison_host_is_safely_removed(tmp_path):
     scenario = _scenario(tmp_path)
     scenario.units = [LegacyUnit(0, 1, 1, 0, 10, 83, 2, 0, 0, 999)]

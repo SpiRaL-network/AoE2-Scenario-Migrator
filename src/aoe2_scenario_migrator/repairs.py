@@ -60,6 +60,46 @@ def apply_safe_repairs(scenario: LegacyScenario, *, aggressive: bool = False) ->
             )
         )
 
+    reserved_names = {
+        trigger.name.strip().casefold()
+        for trigger in scenario.triggers
+        if trigger.name.strip()
+    }
+    renamed_triggers: list[dict[str, int | str]] = []
+    next_name_number = 1
+    for display_position, trigger_index in enumerate(scenario.trigger_order, start=1):
+        trigger = scenario.triggers[trigger_index]
+        if trigger.name.strip():
+            continue
+        while f"trigger {next_name_number}" in reserved_names:
+            next_name_number += 1
+        generated_name = f"Trigger {next_name_number}"
+        trigger.name = generated_name
+        reserved_names.add(generated_name.casefold())
+        renamed_triggers.append(
+            {
+                "trigger_id": trigger_index,
+                "display_position": display_position,
+                "name": generated_name,
+            }
+        )
+        next_name_number += 1
+    if renamed_triggers:
+        scenario.findings.append(
+            Finding(
+                "UPGRADE.UNNAMED_TRIGGER_NAMES",
+                Severity.INFO,
+                f"Named {len(renamed_triggers)} unnamed triggers in display order",
+                "trigger_display_order",
+                {"unnamed_triggers": len(renamed_triggers)},
+                {
+                    "first": renamed_triggers[0],
+                    "last": renamed_triggers[-1],
+                },
+                True,
+            )
+        )
+
     for trigger_index, trigger in enumerate(scenario.triggers):
         if not _valid_order(trigger.effect_order, len(trigger.effects)):
             original = list(trigger.effect_order)

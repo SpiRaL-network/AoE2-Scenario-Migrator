@@ -18,6 +18,7 @@ No unreleased changes.
 - Content-based recognition of HD `.scx`, `.scx2` and `.aoe2scenario` files.
 - Dynamic output to the newest DE scenario revision supported by the installed conversion engine.
 - JSON and HTML reports containing SHA-256 provenance, detected format, repairs and validation results.
+- Trigger, effect and condition totals in the GUI completion status and HTML scenario summary.
 - Portable Windows x64 build that includes the project license and third-party notices.
 - Public CI, issue template, contribution guide and security policy.
 
@@ -32,6 +33,7 @@ No unreleased changes.
 
 - Negative or oversized fixed-array counts for disabled technologies, units and buildings.
 - Invalid trigger, effect and condition order tables.
+- Missing trigger names, assigned as `Trigger 1`, `Trigger 2`, and so on in top-to-bottom display order without changing existing names.
 - Obsolete pre-HD4 condition inversion sentinel values.
 - Classic terrain ID 41 compatibility.
 - Missing garrison-host references.
@@ -49,7 +51,7 @@ No unreleased changes.
 
 - Synthetic fixtures cover every supported legacy format family.
 - Four large community HD scenarios confirmed the recurring negative disabled-content count defect and passed full post-conversion validation.
-- The test suite contains 17 automated regression tests in this release.
+- The test suite contains 20 automated regression tests in this release.
 
 [Unreleased]: https://github.com/SpiRaL-network/AoE2-Scenario-Migrator/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/SpiRaL-network/AoE2-Scenario-Migrator/releases/tag/v0.1.0

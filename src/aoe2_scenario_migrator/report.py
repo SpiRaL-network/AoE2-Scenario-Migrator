@@ -11,7 +11,8 @@ def write_json_report(path: Path, report: dict[str, Any]) -> None:
 
 
 def write_html_report(path: Path, report: dict[str, Any]) -> None:
-    findings = report.get("source", {}).get("findings", [])
+    source = report.get("source", {})
+    findings = source.get("findings", [])
     rows = "".join(
         "<tr>"
         f"<td><code>{html.escape(str(item.get('rule_id', '')))}</code></td>"
@@ -22,6 +23,26 @@ def write_html_report(path: Path, report: dict[str, Any]) -> None:
         for item in findings
     ) or '<tr><td colspan="4">No findings</td></tr>'
     validation = report.get("validation", {})
+    summary_items = (
+        ("Source format", source.get("format", "")),
+        ("Inner version", source.get("inner_version", "")),
+        (
+            "Map",
+            (
+                f"{source.get('map', {}).get('width', 0)} × "
+                f"{source.get('map', {}).get('height', 0)}"
+            ),
+        ),
+        ("Units", f"{int(source.get('units', 0)):,}"),
+        ("Triggers", f"{int(source.get('triggers', 0)):,}"),
+        ("Effects", f"{int(source.get('effects', 0)):,}"),
+        ("Conditions", f"{int(source.get('conditions', 0)):,}"),
+        ("Repairs/findings", f"{len(findings):,}"),
+    )
+    summary_rows = "".join(
+        f"<tr><th>{html.escape(label)}</th><td>{html.escape(str(value))}</td></tr>"
+        for label, value in summary_items
+    )
     document = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
 <title>AoE2 Scenario Migrator report</title>
@@ -35,6 +56,7 @@ th{{background:#f1e5d4}}code{{background:#f3f4f6;padding:.12rem .3rem}}.ok{{colo
 <p><b>Input:</b> {html.escape(str(report.get('input', '')))}<br>
 <b>Output:</b> {html.escape(str(report.get('output', '')))}<br>
 <b>Target:</b> AoE2 DE {html.escape(str(report.get('target_version', '')))}</p>
+<h2>Scenario summary</h2><table><tbody>{summary_rows}</tbody></table>
 <h2>Findings and repairs</h2><table><thead><tr><th>Rule</th><th>Severity</th><th>Details</th><th>Applied</th></tr></thead><tbody>{rows}</tbody></table>
 <h2>Validation details</h2><pre>{html.escape(json.dumps(validation, ensure_ascii=False, indent=2))}</pre>
 </body></html>"""

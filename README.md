@@ -16,7 +16,7 @@ It preserves scenario content, repairs known structural migration defects, write
 4. Select **Add scenarios** or **Add folder**.
 5. Optionally choose one output folder. Leaving it empty saves each result beside its source.
 6. Keep the safe defaults, then select **Convert and validate**.
-7. A scenario is ready only when its status becomes **Validated**. Use the HTML report for a readable summary and the JSON report for technical details.
+7. A scenario is ready only when its status becomes **Validated**. The status shows its trigger count; the HTML report provides a readable scenario summary and the JSON report provides technical details.
 
 The original file is never modified. The output name ends in `_DE_LATEST.aoe2scenario`.
 
@@ -39,7 +39,7 @@ The converter carries the following legacy content into the DE scenario:
 - map size, terrain IDs, elevation and tile layout;
 - player names, civilizations, resources, diplomacy, team settings and disabled content lists;
 - units, owners, coordinates, altitude, rotation, state, animation frame, garrisons and reference IDs;
-- triggers, effects, conditions, selected objects and execution/display order;
+- triggers, existing trigger names, effects, conditions, selected objects and execution/display order;
 - instructions, hints, history, scouts, victory/loss text and cinematics;
 - embedded AI scripts and included files supported by the DE container.
 
@@ -52,6 +52,7 @@ Repairs are rule-based and recorded in both reports with the original value, rep
 | Negative or oversized disabled-technology, disabled-unit or disabled-building count | Clamp the count to the valid fixed-array range while preserving valid entries | Safe default |
 | Invalid trigger display order | Rebuild the table in trigger ID order | Safe default |
 | Invalid effect or condition order | Rebuild the affected order table | Safe default |
+| Trigger has no name | Assign `Trigger 1`, `Trigger 2`, and so on in top-to-bottom display order; existing names stay unchanged | Safe default |
 | Obsolete pre-HD4 condition inversion value | Normalize the legacy `-1` sentinel to the DE value | Safe default |
 | Classic terrain ID 41 | Map it to the DE equivalent | Safe default |
 | Unit references a missing garrison host | Preserve the unit and remove the invalid garrison link | Safe default |
@@ -76,7 +77,7 @@ Each conversion follows this sequence:
 5. Compare map size, every terrain tile and elevation, units and their core properties, trigger/effect/condition counts and order, and scenario messages.
 6. Move the file to its final name only when every validation check passes.
 
-JSON and HTML reports include source/output SHA-256 hashes, detected source format, selected DE target revision, applied repairs and all validation results. Overwrite mode is opt-in and creates a `.bak` backup first.
+JSON and HTML reports include source/output SHA-256 hashes, detected source format, map size, unit/trigger/effect/condition counts, selected DE target revision, applied repairs and all validation results. Overwrite mode is opt-in and creates a `.bak` backup first.
 
 ## Command line
 
