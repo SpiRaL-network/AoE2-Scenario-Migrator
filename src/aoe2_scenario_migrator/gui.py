@@ -53,6 +53,9 @@ class MigratorApp(tk.Tk):
     def _build_ui(self) -> None:
         header = ttk.Frame(self, padding=(24, 20, 24, 12))
         header.pack(fill="x")
+        ttk.Button(header, text="About & credits", command=self._show_about).pack(
+            side="right", anchor="n"
+        )
         ttk.Label(header, text="AoE2 Scenario Migrator", style="Title.TLabel").pack(anchor="w")
         ttk.Label(
             header,
@@ -247,6 +250,18 @@ class MigratorApp(tk.Tk):
     def _open_output(self) -> None:
         if self.last_output_dir and self.last_output_dir.exists():
             os.startfile(self.last_output_dir)
+
+    def _show_about(self) -> None:
+        messagebox.showinfo(
+            "About & credits",
+            f"AoE2 Scenario Migrator {APP_VERSION}\n\n"
+            "Community tool for converting AoK, AoC and HD scenarios to the latest "
+            "supported AoE2 DE format.\n\n"
+            "DE writing and validation: AoE2ScenarioParser\n"
+            "Legacy format reference: AOK Trigger Studio\n\n"
+            "Runtime and packaging: Python, Tcl/Tk and PyInstaller\n\n"
+            "Full credits and license details are included with the application.",
+        )
 
     def _close(self) -> None:
         if self.running and not messagebox.askyesno("Conversion running", "Close while conversion is still running?"):

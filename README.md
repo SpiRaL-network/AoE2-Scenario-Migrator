@@ -4,112 +4,132 @@
 [![Latest release](https://img.shields.io/github/v/release/SpiRaL-network/AoE2-Scenario-Migrator)](https://github.com/SpiRaL-network/AoE2-Scenario-Migrator/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-AoE2 Scenario Migrator is a safe, all-in-one Windows tool for moving classic **Age of Kings**, **The Conquerors**, and **Age of Empires II HD** scenarios to **Age of Empires II: Definitive Edition**.
+AoE2 Scenario Migrator converts classic **Age of Kings**, **The Conquerors**, and **Age of Empires II HD Edition** scenarios to **Age of Empires II: Definitive Edition** on Windows.
 
-The application is not tied to a hard-coded DE version number. At conversion time it selects the newest DE scenario format supported by its installed conversion engine. Updating the engine lets future releases follow new DE scenario revisions without changing the legacy reader.
+It preserves scenario content, repairs known structural migration defects, writes to the newest DE scenario revision supported by the installed conversion engine, and validates the result before keeping it.
+
+## Quick start
+
+1. Download `AoE2ScenarioMigrator-vX.Y.Z-windows-x64.zip` from the [latest release](https://github.com/SpiRaL-network/AoE2-Scenario-Migrator/releases/latest).
+2. Extract the complete ZIP. Do not move the executable away from its accompanying `_internal` folder.
+3. Run `AoE2ScenarioMigrator.exe`.
+4. Select **Add scenarios** or **Add folder**.
+5. Optionally choose one output folder. Leaving it empty saves each result beside its source.
+6. Keep the safe defaults, then select **Convert and validate**.
+7. A scenario is ready only when its status becomes **Validated**. Use the HTML report for a readable summary and the JSON report for technical details.
+
+The original file is never modified. The output name ends in `_DE_LATEST.aoe2scenario`.
 
 ## Supported scenarios
 
-| Source | Files | Recognized inner formats | Result |
+| Source game | Accepted extensions | Recognized inner formats | Output |
 | --- | --- | --- | --- |
-| Age of Empires II: The Age of Kings | `.scn`, `.scx` | 1.18–1.21 | Current supported DE format |
-| Age of Empires II: The Conquerors | `.scx` | 1.22 | Current supported DE format |
-| Age of Empires II HD Edition | `.scx`, `.scx2` | 1.23, 1.24, 1.26 | Current supported DE format |
+| Age of Empires II: The Age of Kings | `.scn`, `.scx` | 1.18, 1.19, 1.20, 1.21 | Latest supported DE format |
+| Age of Empires II: The Conquerors | `.scx` | 1.22 | Latest supported DE format |
+| Age of Empires II HD Edition | `.scx`, `.scx2`, `.aoe2scenario` | 1.23, 1.24, 1.26 | Latest supported DE format |
 
-Real DE `.aoe2scenario` files are already converted and are intentionally left untouched. Some HD Workshop scenarios were published with an `.aoe2scenario` extension even though their contents are still HD data; the application detects those mislabeled files by content and can migrate them. Star Wars: Galactic Battlegrounds uses a different data model and is not supported.
+The latest HD format also uses the `.aoe2scenario` extension. Detection is based on file contents, not only the filename. A true DE `.aoe2scenario` is already converted and is intentionally rejected as an input.
 
-## What it migrates
+Star Wars: Galactic Battlegrounds scenarios are not supported because they use a different data model.
 
-- AoK inner formats 1.18, 1.19, 1.20 and 1.21 (`.scn`/`.scx`)
-- AoC inner format 1.22 (`.scx`)
-- HD inner formats 1.23, 1.24 and 1.26 (`.scx`/`.scx2`)
-- map terrain and elevation, player data, diplomacy, resources and disable lists
-- units, ownership, rotation, animation state, garrisons and stable reference IDs
-- classic triggers, conditions, effects, selected objects and display orders
-- instructions, hints, history, scouts, victory/loss text and cinematics
-- embedded AI text and included files supported by the DE container
+## Preserved content
 
-## What it can repair
+The converter carries the following legacy content into the DE scenario:
 
-The repair engine fixes structural migration problems that can make an old scenario unreadable or cause DE to crash:
+- map size, terrain IDs, elevation and tile layout;
+- player names, civilizations, resources, diplomacy, team settings and disabled content lists;
+- units, owners, coordinates, altitude, rotation, state, animation frame, garrisons and reference IDs;
+- triggers, effects, conditions, selected objects and execution/display order;
+- instructions, hints, history, scouts, victory/loss text and cinematics;
+- embedded AI scripts and included files supported by the DE container.
 
-- invalid negative or oversized counts in the fixed legacy disabled-technology, disabled-unit and disabled-building arrays;
-- invalid trigger display order, effect order and condition order tables;
-- obsolete pre-HD4 condition inversion sentinel values;
-- classic terrain ID 41 remapping required by DE;
-- units pointing to a garrison host that no longer exists;
-- duplicate unit reference IDs, only when the explicit aggressive repair option is enabled;
-- legacy sentinel/default values that need a valid DE representation.
+## Structural repairs
 
-Unsafe or unknown damage is rejected instead of being guessed. This includes unsupported trigger types, missing trigger targets, impossible record counts, truncated files and non-square maps.
+Repairs are rule-based and recorded in both reports with the original value, repaired value, location and rule ID.
 
-The tool does **not** redesign gameplay. It does not invent missing triggers, correct a trigger whose game logic is wrong, move misplaced map objects, rebalance units, or repair a scenario that depends on unavailable custom data mods. Those cases still need a scenario author.
+| Problem | Repair | Mode |
+| --- | --- | --- |
+| Negative or oversized disabled-technology, disabled-unit or disabled-building count | Clamp the count to the valid fixed-array range while preserving valid entries | Safe default |
+| Invalid trigger display order | Rebuild the table in trigger ID order | Safe default |
+| Invalid effect or condition order | Rebuild the affected order table | Safe default |
+| Obsolete pre-HD4 condition inversion value | Normalize the legacy `-1` sentinel to the DE value | Safe default |
+| Classic terrain ID 41 | Map it to the DE equivalent | Safe default |
+| Unit references a missing garrison host | Preserve the unit and remove the invalid garrison link | Safe default |
+| Duplicate unit reference IDs | Assign deterministic new IDs | **Aggressive repair**, opt-in |
 
-## Safety model
+Unsupported or ambiguous damage is rejected instead of guessed. Examples include unknown legacy trigger types, effects targeting a missing trigger, impossible record counts, truncated data and non-square maps.
 
-The source is never edited. Conversion is written to a temporary file, reopened with the current DE parser, compared to the source model, and moved to its final name only after validation passes.
+## What it does not repair
 
-Every conversion produces optional JSON and HTML reports. Repairs have stable rule IDs, record the original and repaired values, and distinguish deterministic fixes from ambiguous damage. Overwriting is opt-in and first creates a `.bak` backup.
+The tool does not redesign gameplay. It cannot determine that a valid trigger has the wrong game logic, invent a missing trigger, move an incorrectly placed object, rebalance units, restore unavailable custom data mods or guarantee compatibility with every mod dependency.
 
-The converted scenario is checked for map size, every terrain tile and elevation, unit identity/ownership/position/garrison, trigger/effect/condition counts and ordering, messages, and successful reopening by the current DE parser. Reports include the chosen DE target revision so every result remains auditable.
+Those problems require inspection by the scenario author in the DE editor.
 
-## Windows GUI
+## Validation and safety
 
-Download the portable Windows package from the [latest release](https://github.com/SpiRaL-network/AoE2-Scenario-Migrator/releases/latest), extract the ZIP, and run `AoE2ScenarioMigrator.exe`.
+Each conversion follows this sequence:
 
-To run it from source instead:
+1. Read and diagnose the legacy binary without modifying it.
+2. Apply deterministic structural repairs.
+3. Build the DE scenario in a temporary file.
+4. Reopen that file with the DE parser.
+5. Compare map size, every terrain tile and elevation, units and their core properties, trigger/effect/condition counts and order, and scenario messages.
+6. Move the file to its final name only when every validation check passes.
 
-```powershell
-cd AoE2-Scenario-Migrator
-powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
-.\.venv\Scripts\aoe2sm-gui.exe
-```
-
-Add individual scenarios or a complete folder, optionally select one common output directory, then choose **Convert and validate**.
+JSON and HTML reports include source/output SHA-256 hashes, detected source format, selected DE target revision, applied repairs and all validation results. Overwrite mode is opt-in and creates a `.bak` backup first.
 
 ## Command line
 
-Inspect without producing a DE file:
+Install the project, then inspect a scenario without creating an output:
 
 ```powershell
 aoe2sm inspect "legacy.scx"
 ```
 
-Convert one file:
+Convert one or more files:
 
 ```powershell
 aoe2sm convert "legacy.scx" -o ".\converted"
-```
-
-Batch conversion:
-
-```powershell
 aoe2sm convert ".\one.scn" ".\two.scx" ".\three.scx2" -o ".\converted"
 ```
 
-Use `--overwrite` for a recoverable replacement with `.bak`, or `--aggressive-repair` to remap duplicate unit reference IDs.
+Use `--overwrite` for recoverable replacement with a `.bak` backup. Use `--aggressive-repair` only when duplicate unit reference IDs prevent safe conversion.
 
-## Build the distributable `.exe`
+## Run from source
+
+Python 3.11 or newer is required.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
+git clone https://github.com/SpiRaL-network/AoE2-Scenario-Migrator.git
+cd AoE2-Scenario-Migrator
+powershell -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+.\.venv\Scripts\aoe2sm-gui.exe
 ```
 
-The result is `dist\AoE2ScenarioMigrator\AoE2ScenarioMigrator.exe`. The folder is portable and does not require Python on the destination computer.
-
-## Development and tests
+## Build and test
 
 ```powershell
 .\.venv\Scripts\python -m pytest
 .\.venv\Scripts\ruff check src tests
+powershell -ExecutionPolicy Bypass -File .\scripts\build.ps1
 ```
 
-The binary reader is an original implementation based on the publicly documented Genie scenario layout. See `NOTICE.md` for credits.
+The portable build is created at `dist\AoE2ScenarioMigrator\AoE2ScenarioMigrator.exe` and includes the project and third-party notices.
 
-Bug reports and contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) and [SECURITY.md](SECURITY.md).
+## Version history
 
-## Démarrage rapide en français
+See [CHANGELOG.md](CHANGELOG.md) for the complete release history and categorized changes.
 
-L’outil accepte les scénarios AoK, AoC et HD listés ci-dessus et les convertit vers le format DE le plus récent connu par le moteur installé. Il ne modifie jamais le scénario original. Ajoute les fichiers `.scn`, `.scx` ou `.scx2`, choisis éventuellement un dossier de sortie, puis clique sur **Convert and validate**. Le fichier DE, un rapport lisible en HTML et un rapport technique JSON sont créés uniquement si la relecture de contrôle réussit.
+## Credits
 
-Il répare les corruptions de structure connues (comme les compteurs invalides qui faisaient planter notre scénario HD), les ordres de triggers invalides, certaines anciennes valeurs sentinelles, les références de garnison absentes et, sur demande, les identifiants d’unités dupliqués. Il conserve les objets, leurs positions et la logique des triggers. Un bug de conception du scénario doit donc toujours être corrigé dans l’éditeur.
+- [AoE2ScenarioParser](https://github.com/KSneijders/AoE2ScenarioParser) writes the DE scenario and performs the independent reopening/validation pass.
+- [AOK Trigger Studio](https://github.com/mwhiter/aokts) served as a public reference for the legacy Genie scenario layout. No AOK Trigger Studio source code is included or linked into this project.
+- [Python](https://www.python.org/), [Tcl/Tk](https://www.tcl-lang.org/) and [PyInstaller](https://pyinstaller.org/) provide the runtime, desktop interface and Windows packaging.
+
+Their authors deserve credit for making community scenario tooling possible. See [NOTICE.md](NOTICE.md) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for roles and license references.
+
+## Contributing and security
+
+Bug reports and contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting scenario files, and use the private process described in [SECURITY.md](SECURITY.md) for security issues.
+
+This independent community project is not affiliated with or endorsed by Microsoft, Xbox Game Studios, Forgotten Empires or World's Edge.

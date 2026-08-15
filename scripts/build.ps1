@@ -15,6 +15,17 @@ try {
         --distpath (Join-Path $ProjectRoot "dist") `
         --workpath (Join-Path $ProjectRoot "build\pyinstaller") `
         (Join-Path $ProjectRoot "scripts\gui_entry.py")
+
+    $PortableFolder = Join-Path $ProjectRoot "dist\AoE2ScenarioMigrator"
+    foreach ($Document in @(
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE",
+        "NOTICE.md",
+        "THIRD_PARTY_NOTICES.md"
+    )) {
+        Copy-Item -LiteralPath (Join-Path $ProjectRoot $Document) -Destination $PortableFolder
+    }
 } finally {
     Pop-Location
 }
