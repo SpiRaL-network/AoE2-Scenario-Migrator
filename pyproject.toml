@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aoe2-scenario-migrator"
+version = "0.1.0"
+description = "Safe AoK, AoC and AoE2 HD scenario migration to the newest supported AoE2 DE format"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "SpiRaL' and contributors" }]
+dependencies = ["AoE2ScenarioParser>=0.8.4,<0.9"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Environment :: Win32 (MS Windows)",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Games/Entertainment :: Real Time Strategy",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "ruff>=0.9", "pyinstaller>=6.11"]
+
+[project.scripts]
+aoe2sm = "aoe2_scenario_migrator.cli:main"
+aoe2sm-gui = "aoe2_scenario_migrator.gui:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = [
+  "ignore::DeprecationWarning:AoE2ScenarioParser.*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

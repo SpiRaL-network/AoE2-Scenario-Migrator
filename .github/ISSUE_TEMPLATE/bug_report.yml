@@ -1,0 +1,43 @@
+name: Conversion bug
+description: Report a failed conversion or an incorrect DE result
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve classic scenario compatibility. Do not upload a scenario unless you have permission to share it.
+  - type: input
+    id: version
+    attributes:
+      label: Migrator version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: source
+    attributes:
+      label: Source game
+      options:
+        - Age of Kings
+        - The Conquerors
+        - Age of Empires II HD
+        - Unknown
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include the full error message or describe the in-game difference.
+    validations:
+      required: true
+  - type: textarea
+    id: report
+    attributes:
+      label: Conversion report
+      description: Attach the generated JSON report when available. Remove paths you consider private.
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction details
+      description: Explain the smallest sequence that reproduces the problem.
